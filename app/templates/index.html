@@ -4,6 +4,7 @@
 {% block title %}Início | BellaGestão{% endblock %}
 
 {% block content %}
+
 <div class="row mb-4">
     <div class="col-12">
         <h1 class="fw-bold">Bem-vinda ao BellaGestão!</h1>
@@ -14,11 +15,16 @@
 </div>
 
 <div class="row g-4">
+
+    <!-- Módulo de Clientes -->
     <div class="col-md-4">
         <div class="card main-card h-100 p-4">
             <div class="card-body">
                 <h2 class="h4">Clientes</h2>
-                <p>Consulte e organize as informações das clientes.</p>
+                <p>
+                    Consulte e organize as informações das clientes.
+                </p>
+
                 <a href="{{ url_for('main.clientes') }}"
                    class="btn btn-primary">
                     Acessar clientes
@@ -27,11 +33,15 @@
         </div>
     </div>
 
+    <!-- Módulo de Profissionais -->
     <div class="col-md-4">
         <div class="card main-card h-100 p-4">
             <div class="card-body">
                 <h2 class="h4">Profissionais</h2>
-                <p>Visualize as profissionais do salão.</p>
+                <p>
+                    Visualize as profissionais do salão.
+                </p>
+
                 <a href="{{ url_for('main.profissionais') }}"
                    class="btn btn-primary">
                     Acessar profissionais
@@ -40,11 +50,15 @@
         </div>
     </div>
 
+    <!-- Módulo de Agendamentos -->
     <div class="col-md-4">
         <div class="card main-card h-100 p-4">
             <div class="card-body">
                 <h2 class="h4">Agendamentos</h2>
-                <p>Organize os horários e atendimentos.</p>
+                <p>
+                    Organize os horários e atendimentos.
+                </p>
+
                 <a href="{{ url_for('main.agendamentos') }}"
                    class="btn btn-primary">
                     Acessar agenda
@@ -52,10 +66,12 @@
             </div>
         </div>
     </div>
+
 </div>
 
 <div class="alert alert-light border mt-4" role="status">
-    <strong>BellaGestão:</strong> sistema de apoio à organização
-    dos atendimentos do Salão Distak.
+    <strong>BellaGestão:</strong>
+    sistema de apoio à organização dos atendimentos do Salão Distak.
 </div>
+
 {% endblock %}
