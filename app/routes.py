@@ -1,14 +1,9 @@
 
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 main = Blueprint("main", __name__)
 
 
 @main.route("/")
 def home():
-    return """
-    <h1>BellaGestão</h1>
-    <h2>Salão Distak</h2>
-    <p>Sistema de gerenciamento de agendamentos.</p>
-    <p>Bem-vindo ao BellaGestão!</p>
-    """
+    return render_template("index.html")
