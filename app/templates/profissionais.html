@@ -1,0 +1,139 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Profissionais</h1>
+            <p class="text-muted">
+                Cadastre e organize as profissionais do Salão Distak.
+            </p>
+        </div>
+
+        <a href="{{ url_for('main.home') }}"
+           class="btn btn-outline-secondary">
+            Voltar ao início
+        </a>
+    </div>
+
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+            <div class="alert alert-{{ categoria }}" role="alert">
+                {{ mensagem }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Cadastrar profissional</h2>
+
+            <form method="POST" action="{{ url_for('main.profissionais') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nome" class="form-label">
+                            Nome *
+                        </label>
+                        <input type="text"
+                               class="form-control"
+                               id="nome"
+                               name="nome"
+                               maxlength="100"
+                               required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="telefone" class="form-label">
+                            Telefone
+                        </label>
+                        <input type="tel"
+                               class="form-control"
+                               id="telefone"
+                               name="telefone"
+                               maxlength="20">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">
+                    Cadastrar profissional
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h2 class="h5 mb-3">Profissionais cadastradas</h2>
+
+            {% if profissionais %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome</th>
+                                <th scope="col">Telefone</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for profissional in profissionais %}
+                                <tr>
+                                    <td>{{ profissional.nome }}</td>
+                                    <td>{{ profissional.telefone or "-" }}</td>
+                                    <td>
+                                        {% if profissional.status == "ativo" %}
+                                            <span class="badge text-bg-success">
+                                                Ativo
+                                            </span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">
+                                                Inativo
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <a href="{{ url_for('main.editar_profissional', id_profissional=profissional.id_profissional) }}"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Editar
+                                            </a>
+
+                                            <form method="POST"
+                                                  action="{{ url_for('main.alterar_status_profissional', id_profissional=profissional.id_profissional) }}">
+                                                <input type="hidden"
+                                                       name="csrf_token"
+                                                       value="{{ csrf_token() }}">
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-secondary">
+                                                    {% if profissional.status == "ativo" %}
+                                                        Inativar
+                                                    {% else %}
+                                                        Ativar
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted mb-0">
+                    Nenhuma profissional cadastrada até o momento.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
