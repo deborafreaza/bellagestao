@@ -1,14 +1,35 @@
 
-from flask import Blueprint
+from flask import Blueprint, render_template
 
 main = Blueprint("main", __name__)
 
-
 @main.route("/")
 def home():
-    return """
-    <h1>BellaGestão</h1>
-    <h2>Salão Distak</h2>
-    <p>Sistema de gerenciamento de agendamentos.</p>
-    <p>Bem-vindo ao BellaGestão!</p>
-    """
+    return render_template("index.html")
+
+
+@main.route("/clientes")
+def clientes():
+    return render_template(
+        "modulo.html",
+        titulo="Clientes",
+        descricao="Consulte, cadastre e organize as informações das clientes do Salão Distak."
+    )
+
+
+@main.route("/profissionais")
+def profissionais():
+    return render_template(
+        "modulo.html",
+        titulo="Profissionais",
+        descricao="Consulte e organize as informações das profissionais do salão."
+    )
+
+
+@main.route("/agendamentos")
+def agendamentos():
+    return render_template(
+        "modulo.html",
+        titulo="Agendamentos",
+        descricao="Organize os horários, serviços, clientes e profissionais do salão."
+    )
