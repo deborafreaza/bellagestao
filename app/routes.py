@@ -6,7 +6,7 @@ from flask import (
     redirect, url_for, flash
 )
 
-from .models import db, Cliente, Profissional, Agendamento
+from .models import db, Cliente, Profissional, Servico, Agendamento
 
 main = Blueprint("main", __name__)
 
@@ -233,6 +233,127 @@ def alterar_status_profissional(id_profissional):
 # ==========================
 # MÓDULO DE AGENDAMENTOS
 # ==========================
+
+# ==========================
+# MÓDULO DE SERVIÇOS
+# ==========================
+
+@main.route("/servicos", methods=["GET", "POST"])
+def servicos():
+    if request.method == "POST":
+        nome = request.form.get("nome", "").strip()
+        duracao = request.form.get("duracao_minutos", "").strip()
+
+        if not nome or not duracao:
+            flash("Nome e duração são obrigatórios.", "danger")
+
+        elif len(nome) > 100:
+            flash("O nome do serviço é muito longo.", "danger")
+
+        else:
+            try:
+                duracao = int(duracao)
+
+                if duracao <= 0:
+                    raise ValueError
+
+                servico = Servico(
+                    nome=nome,
+                    duracao_minutos=duracao
+                )
+
+                db.session.add(servico)
+                db.session.commit()
+
+                flash("Serviço cadastrado com sucesso!", "success")
+                return redirect(url_for("main.servicos"))
+
+            except ValueError:
+                flash("Informe uma duração válida em minutos.", "danger")
+
+            except Exception:
+                db.session.rollback()
+                logger.exception("Erro ao cadastrar serviço.")
+                flash("Não foi possível cadastrar o serviço.", "danger")
+
+    lista_servicos = Servico.query.order_by(Servico.nome).all()
+
+    return render_template(
+        "servicos.html",
+        servicos=lista_servicos
+    )
+
+
+@main.route(
+    "/servicos/<int:id_servico>/editar",
+    methods=["GET", "POST"]
+)
+def editar_servico(id_servico):
+    servico = db.get_or_404(Servico, id_servico)
+
+    if request.method == "POST":
+        nome = request.form.get("nome", "").strip()
+        duracao = request.form.get("duracao_minutos", "").strip()
+
+        if not nome:
+            flash("O nome do serviço é obrigatório.", "danger")
+
+        elif len(nome) > 100:
+            flash("O nome do serviço é muito longo.", "danger")
+
+        else:
+            try:
+                duracao = int(duracao)
+
+                if duracao <= 0:
+                    raise ValueError
+
+                servico.nome = nome
+                servico.duracao_minutos = duracao
+
+                db.session.commit()
+
+                flash("Serviço atualizado com sucesso!", "success")
+                return redirect(url_for("main.servicos"))
+
+            except ValueError:
+                flash("Informe uma duração válida em minutos.", "danger")
+
+            except Exception:
+                db.session.rollback()
+                logger.exception("Erro ao atualizar serviço.")
+                flash("Não foi possível atualizar o serviço.", "danger")
+
+    return render_template(
+        "editar_servico.html",
+        servico=servico
+    )
+
+
+@main.route(
+    "/servicos/<int:id_servico>/status",
+    methods=["POST"]
+)
+def alterar_status_servico(id_servico):
+    servico = db.get_or_404(Servico, id_servico)
+
+    if servico.status == "ativo":
+        servico.status = "inativo"
+        mensagem = "Serviço inativado com sucesso!"
+    else:
+        servico.status = "ativo"
+        mensagem = "Serviço ativado com sucesso!"
+
+    try:
+        db.session.commit()
+        flash(mensagem, "success")
+
+    except Exception:
+        db.session.rollback()
+        logger.exception("Erro ao alterar status do serviço.")
+        flash("Não foi possível alterar o status.", "danger")
+
+    return redirect(url_for("main.servicos"))
 
 @main.route("/agendamentos")
 def agendamentos():
