@@ -6,7 +6,7 @@ from flask import (
     redirect, url_for, flash
 )
 
-from .models import db, Cliente, Agendamento
+from .models import db, Cliente, Profissional, Agendamento
 
 main = Blueprint("main", __name__)
 
@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 def home():
     return render_template("index.html")
 
+
+# ==========================
+# MÓDULO DE CLIENTES
+# ==========================
 
 @main.route("/clientes", methods=["GET", "POST"])
 def clientes():
@@ -121,14 +125,114 @@ def excluir_cliente(id_cliente):
     return redirect(url_for("main.clientes"))
 
 
-@main.route("/profissionais")
+# ==========================
+# MÓDULO DE PROFISSIONAIS
+# ==========================
+
+@main.route("/profissionais", methods=["GET", "POST"])
 def profissionais():
+    if request.method == "POST":
+        nome = request.form.get("nome", "").strip()
+        telefone = request.form.get("telefone", "").strip()
+
+        if not nome:
+            flash("O nome da profissional é obrigatório.", "danger")
+
+        elif len(nome) > 100 or len(telefone) > 20:
+            flash("Um ou mais campos excedem o tamanho permitido.", "danger")
+
+        else:
+            profissional = Profissional(
+                nome=nome,
+                telefone=telefone or None
+            )
+
+            try:
+                db.session.add(profissional)
+                db.session.commit()
+                flash("Profissional cadastrada com sucesso!", "success")
+                return redirect(url_for("main.profissionais"))
+
+            except Exception:
+                db.session.rollback()
+                logger.exception("Erro ao cadastrar profissional.")
+                flash("Não foi possível cadastrar a profissional.", "danger")
+
+    lista_profissionais = Profissional.query.order_by(
+        Profissional.nome
+    ).all()
+
     return render_template(
-        "modulo.html",
-        titulo="Profissionais",
-        descricao="Consulte e organize as informações das profissionais do salão."
+        "profissionais.html",
+        profissionais=lista_profissionais
     )
 
+
+@main.route(
+    "/profissionais/<int:id_profissional>/editar",
+    methods=["GET", "POST"]
+)
+def editar_profissional(id_profissional):
+    profissional = db.get_or_404(Profissional, id_profissional)
+
+    if request.method == "POST":
+        nome = request.form.get("nome", "").strip()
+        telefone = request.form.get("telefone", "").strip()
+
+        if not nome:
+            flash("O nome da profissional é obrigatório.", "danger")
+
+        elif len(nome) > 100 or len(telefone) > 20:
+            flash("Um ou mais campos excedem o tamanho permitido.", "danger")
+
+        else:
+            profissional.nome = nome
+            profissional.telefone = telefone or None
+
+            try:
+                db.session.commit()
+                flash("Profissional atualizada com sucesso!", "success")
+                return redirect(url_for("main.profissionais"))
+
+            except Exception:
+                db.session.rollback()
+                logger.exception("Erro ao atualizar profissional.")
+                flash("Não foi possível atualizar a profissional.", "danger")
+
+    return render_template(
+        "editar_profissional.html",
+        profissional=profissional
+    )
+
+
+@main.route(
+    "/profissionais/<int:id_profissional>/status",
+    methods=["POST"]
+)
+def alterar_status_profissional(id_profissional):
+    profissional = db.get_or_404(Profissional, id_profissional)
+
+    if profissional.status == "ativo":
+        profissional.status = "inativo"
+        flash("Profissional inativada com sucesso!", "success")
+    else:
+        profissional.status = "ativo"
+        flash("Profissional ativada com sucesso!", "success")
+
+    try:
+        db.session.commit()
+
+    except Exception:
+        db.session.rollback()
+        logger.exception("Erro ao alterar status da profissional.")
+        flash("Não foi possível alterar o status.", "danger")
+
+    return redirect(url_for("main.profissionais"))
+
+
+# ==========================
+# MÓDULO DE AGENDAMENTOS
+# ==========================
 
 @main.route("/agendamentos")
 def agendamentos():
