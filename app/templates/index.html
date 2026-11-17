@@ -17,13 +17,11 @@
 <div class="row g-4">
 
     <!-- Módulo de Clientes -->
-    <div class="col-md-4">
+    <div class="col-md-6 col-lg-3">
         <div class="card main-card h-100 p-4">
             <div class="card-body">
                 <h2 class="h4">Clientes</h2>
-                <p>
-                    Consulte e organize as informações das clientes.
-                </p>
+                <p>Consulte e organize as informações das clientes.</p>
 
                 <a href="{{ url_for('main.clientes') }}"
                    class="btn btn-primary">
@@ -34,13 +32,11 @@
     </div>
 
     <!-- Módulo de Profissionais -->
-    <div class="col-md-4">
+    <div class="col-md-6 col-lg-3">
         <div class="card main-card h-100 p-4">
             <div class="card-body">
                 <h2 class="h4">Profissionais</h2>
-                <p>
-                    Visualize as profissionais do salão.
-                </p>
+                <p>Cadastre e organize as profissionais do salão.</p>
 
                 <a href="{{ url_for('main.profissionais') }}"
                    class="btn btn-primary">
@@ -50,14 +46,27 @@
         </div>
     </div>
 
+    <!-- Módulo de Serviços -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card main-card h-100 p-4">
+            <div class="card-body">
+                <h2 class="h4">Serviços</h2>
+                <p>Cadastre os serviços e suas respectivas durações.</p>
+
+                <a href="{{ url_for('main.servicos') }}"
+                   class="btn btn-primary">
+                    Acessar serviços
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Módulo de Agendamentos -->
-    <div class="col-md-4">
+    <div class="col-md-6 col-lg-3">
         <div class="card main-card h-100 p-4">
             <div class="card-body">
                 <h2 class="h4">Agendamentos</h2>
-                <p>
-                    Organize os horários e atendimentos.
-                </p>
+                <p>Organize os horários e atendimentos do salão.</p>
 
                 <a href="{{ url_for('main.agendamentos') }}"
                    class="btn btn-primary">
