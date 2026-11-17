@@ -1,0 +1,73 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h1>Editar profissional</h1>
+        <p class="text-muted">
+            Atualize as informações da profissional.
+        </p>
+    </div>
+
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+            <div class="alert alert-{{ categoria }}" role="alert">
+                {{ mensagem }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <form method="POST"
+                  action="{{ url_for('main.editar_profissional', id_profissional=profissional.id_profissional) }}">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="mb-3">
+                    <label for="nome" class="form-label">
+                        Nome *
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           id="nome"
+                           name="nome"
+                           maxlength="100"
+                           value="{{ profissional.nome }}"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="telefone" class="form-label">
+                        Telefone
+                    </label>
+
+                    <input type="tel"
+                           class="form-control"
+                           id="telefone"
+                           name="telefone"
+                           maxlength="20"
+                           value="{{ profissional.telefone or '' }}">
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Salvar alterações
+                </button>
+
+                <a href="{{ url_for('main.profissionais') }}"
+                   class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
