@@ -1,8 +1,12 @@
 
 import os
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
+
 from .models import db
 from .routes import main
+
+csrf = CSRFProtect()
 
 
 def create_app(test_config=None):
@@ -19,7 +23,9 @@ def create_app(test_config=None):
     if test_config:
         app.config.update(test_config)
 
+    csrf.init_app(app)
     db.init_app(app)
+
     app.register_blueprint(main)
 
     with app.app_context():
