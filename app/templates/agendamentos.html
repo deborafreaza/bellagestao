@@ -1,0 +1,229 @@
+
+{% extends "base.html" %}
+
+{% block title %}Agendamentos | BellaGestão{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Agendamentos</h1>
+            <p class="text-muted">
+                Organize os horários e atendimentos do Salão Distak.
+            </p>
+        </div>
+
+        <a href="{{ url_for('main.home') }}"
+           class="btn btn-outline-secondary">
+            Voltar ao início
+        </a>
+    </div>
+
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+            <div class="alert alert-{{ categoria }}" role="alert">
+                {{ mensagem }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- Cadastro de agendamento -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <h2 class="h5 mb-3">Novo agendamento</h2>
+
+            <form method="POST"
+                  action="{{ url_for('main.agendamentos') }}">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label for="id_cliente" class="form-label">
+                            Cliente *
+                        </label>
+
+                        <select class="form-select"
+                                id="id_cliente"
+                                name="id_cliente"
+                                required>
+                            <option value="">Selecione uma cliente</option>
+
+                            {% for cliente in clientes %}
+                                <option value="{{ cliente.id_cliente }}">
+                                    {{ cliente.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="id_profissional" class="form-label">
+                            Profissional *
+                        </label>
+
+                        <select class="form-select"
+                                id="id_profissional"
+                                name="id_profissional"
+                                required>
+                            <option value="">Selecione uma profissional</option>
+
+                            {% for profissional in profissionais %}
+                                <option value="{{ profissional.id_profissional }}">
+                                    {{ profissional.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="id_servico" class="form-label">
+                            Serviço *
+                        </label>
+
+                        <select class="form-select"
+                                id="id_servico"
+                                name="id_servico"
+                                required>
+                            <option value="">Selecione um serviço</option>
+
+                            {% for servico in servicos %}
+                                <option value="{{ servico.id_servico }}">
+                                    {{ servico.nome }} - {{ servico.duracao_minutos }} minutos
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="data" class="form-label">
+                            Data *
+                        </label>
+
+                        <input type="date"
+                               class="form-control"
+                               id="data"
+                               name="data"
+                               required>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="hora_inicio" class="form-label">
+                            Horário de início *
+                        </label>
+
+                        <input type="time"
+                               class="form-control"
+                               id="hora_inicio"
+                               name="hora_inicio"
+                               required>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-primary mt-3">
+                    Cadastrar agendamento
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de agendamentos -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <h2 class="h5 mb-3">Agendamentos cadastrados</h2>
+
+            {% if agendamentos %}
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+
+                        <thead>
+                            <tr>
+                                <th scope="col">Data</th>
+                                <th scope="col">Horário</th>
+                                <th scope="col">Cliente</th>
+                                <th scope="col">Profissional</th>
+                                <th scope="col">Serviço</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Ações</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for agendamento in agendamentos %}
+                                <tr>
+                                    <td>
+                                        {{ agendamento.data.strftime('%d/%m/%Y') }}
+                                    </td>
+
+                                    <td>
+                                        {{ agendamento.hora_inicio.strftime('%H:%M') }}
+                                        às
+                                        {{ agendamento.hora_fim.strftime('%H:%M') }}
+                                    </td>
+
+                                    <td>{{ agendamento.cliente.nome }}</td>
+
+                                    <td>{{ agendamento.profissional.nome }}</td>
+
+                                    <td>{{ agendamento.servico.nome }}</td>
+
+                                    <td>
+                                        {% if agendamento.status == "agendado" %}
+                                            <span class="badge text-bg-success">
+                                                Agendado
+                                            </span>
+                                        {% else %}
+                                            <span class="badge text-bg-secondary">
+                                                Cancelado
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>
+                                        {% if agendamento.status != "cancelado" %}
+                                            <form method="POST"
+                                                  action="{{ url_for('main.cancelar_agendamento', id_agendamento=agendamento.id_agendamento) }}"
+                                                  onsubmit="return confirm('Deseja realmente cancelar este agendamento?');">
+
+                                                <input type="hidden"
+                                                       name="csrf_token"
+                                                       value="{{ csrf_token() }}">
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger">
+                                                    Cancelar
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+
+                    </table>
+                </div>
+
+            {% else %}
+                <p class="text-muted mb-0">
+                    Nenhum agendamento cadastrado até o momento.
+                </p>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
