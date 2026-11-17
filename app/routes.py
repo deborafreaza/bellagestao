@@ -1,5 +1,6 @@
 
 import logging
+from datetime import datetime, timedelta
 
 from flask import (
     Blueprint, render_template, request,
@@ -355,10 +356,149 @@ def alterar_status_servico(id_servico):
 
     return redirect(url_for("main.servicos"))
 
-@main.route("/agendamentos")
+
+# ==========================
+# MÓDULO DE AGENDAMENTOS
+# ==========================
+
+@main.route("/agendamentos", methods=["GET", "POST"])
 def agendamentos():
+
+    if request.method == "POST":
+        id_cliente = request.form.get("id_cliente", "").strip()
+        id_profissional = request.form.get("id_profissional", "").strip()
+        id_servico = request.form.get("id_servico", "").strip()
+        data_form = request.form.get("data", "").strip()
+        hora_form = request.form.get("hora_inicio", "").strip()
+
+        try:
+            if not all([
+                id_cliente,
+                id_profissional,
+                id_servico,
+                data_form,
+                hora_form
+            ]):
+                raise ValueError("Preencha todos os campos obrigatórios.")
+
+            id_cliente = int(id_cliente)
+            id_profissional = int(id_profissional)
+            id_servico = int(id_servico)
+
+            data_agendamento = datetime.strptime(
+                data_form, "%Y-%m-%d"
+            ).date()
+
+            hora_inicio = datetime.strptime(
+                hora_form, "%H:%M"
+            ).time()
+
+            cliente = db.get_or_404(Cliente, id_cliente)
+            profissional = db.get_or_404(Profissional, id_profissional)
+            servico = db.get_or_404(Servico, id_servico)
+
+            if profissional.status != "ativo":
+                raise ValueError("A profissional selecionada está inativa.")
+
+            if servico.status != "ativo":
+                raise ValueError("O serviço selecionado está inativo.")
+
+            inicio_datetime = datetime.combine(
+                data_agendamento, hora_inicio
+            )
+
+            fim_datetime = inicio_datetime + timedelta(
+                minutes=servico.duracao_minutos
+            )
+
+            if fim_datetime.date() != data_agendamento:
+                raise ValueError(
+                    "O agendamento não pode ultrapassar a meia-noite."
+                )
+
+            hora_fim = fim_datetime.time()
+
+            conflito = Agendamento.query.filter(
+                Agendamento.data == data_agendamento,
+                Agendamento.id_profissional == id_profissional,
+                Agendamento.status != "cancelado",
+                Agendamento.hora_inicio < hora_fim,
+                Agendamento.hora_fim > hora_inicio
+            ).first()
+
+            if conflito:
+                raise ValueError(
+                    "A profissional já possui um agendamento nesse horário."
+                )
+
+            novo_agendamento = Agendamento(
+                data=data_agendamento,
+                hora_inicio=hora_inicio,
+                hora_fim=hora_fim,
+                id_cliente=cliente.id_cliente,
+                id_profissional=profissional.id_profissional,
+                id_servico=servico.id_servico
+            )
+
+            db.session.add(novo_agendamento)
+            db.session.commit()
+
+            flash("Agendamento cadastrado com sucesso!", "success")
+            return redirect(url_for("main.agendamentos"))
+
+        except ValueError as erro:
+            db.session.rollback()
+            flash(str(erro), "danger")
+
+        except Exception:
+            db.session.rollback()
+            logger.exception("Erro ao cadastrar agendamento.")
+            flash("Não foi possível cadastrar o agendamento.", "danger")
+
+    lista_agendamentos = Agendamento.query.order_by(
+        Agendamento.data,
+        Agendamento.hora_inicio
+    ).all()
+
+    lista_clientes = Cliente.query.order_by(Cliente.nome).all()
+
+    lista_profissionais = Profissional.query.filter_by(
+        status="ativo"
+    ).order_by(Profissional.nome).all()
+
+    lista_servicos = Servico.query.filter_by(
+        status="ativo"
+    ).order_by(Servico.nome).all()
+
     return render_template(
-        "modulo.html",
-        titulo="Agendamentos",
-        descricao="Organize os horários, serviços, clientes e profissionais do salão."
+        "agendamentos.html",
+        agendamentos=lista_agendamentos,
+        clientes=lista_clientes,
+        profissionais=lista_profissionais,
+        servicos=lista_servicos
     )
+
+
+@main.route(
+    "/agendamentos/<int:id_agendamento>/cancelar",
+    methods=["POST"]
+)
+def cancelar_agendamento(id_agendamento):
+
+    agendamento = db.get_or_404(Agendamento, id_agendamento)
+
+    if agendamento.status == "cancelado":
+        flash("Este agendamento já está cancelado.", "warning")
+        return redirect(url_for("main.agendamentos"))
+
+    try:
+        agendamento.status = "cancelado"
+        db.session.commit()
+        flash("Agendamento cancelado com sucesso!", "success")
+
+    except Exception:
+        db.session.rollback()
+        logger.exception("Erro ao cancelar agendamento.")
+        flash("Não foi possível cancelar o agendamento.", "danger")
+
+    return redirect(url_for("main.agendamentos"))
