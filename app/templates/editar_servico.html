@@ -1,0 +1,74 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-4">
+
+    <div class="mb-4">
+        <h1>Editar serviço</h1>
+        <p class="text-muted">
+            Atualize as informações do serviço.
+        </p>
+    </div>
+
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+            <div class="alert alert-{{ categoria }}" role="alert">
+                {{ mensagem }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <form method="POST"
+                  action="{{ url_for('main.editar_servico', id_servico=servico.id_servico) }}">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="mb-3">
+                    <label for="nome" class="form-label">
+                        Nome do serviço *
+                    </label>
+
+                    <input type="text"
+                           class="form-control"
+                           id="nome"
+                           name="nome"
+                           maxlength="100"
+                           value="{{ servico.nome }}"
+                           required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="duracao_minutos" class="form-label">
+                        Duração (minutos) *
+                    </label>
+
+                    <input type="number"
+                           class="form-control"
+                           id="duracao_minutos"
+                           name="duracao_minutos"
+                           min="1"
+                           value="{{ servico.duracao_minutos }}"
+                           required>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Salvar alterações
+                </button>
+
+                <a href="{{ url_for('main.servicos') }}"
+                   class="btn btn-outline-secondary">
+                    Cancelar
+                </a>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
