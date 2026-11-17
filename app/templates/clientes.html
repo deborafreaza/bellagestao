@@ -26,6 +26,7 @@
             <h2 class="h5 mb-3">Cadastrar cliente</h2>
 
             <form method="POST" action="{{ url_for('main.clientes') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label for="nome" class="form-label">Nome *</label>
@@ -87,6 +88,7 @@
                                             <form method="POST"
                                                   action="{{ url_for('main.excluir_cliente', id_cliente=cliente.id_cliente) }}"
                                                   onsubmit="return confirm('Deseja realmente excluir esta cliente?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button type="submit"
                                                         class="btn btn-sm btn-outline-danger">
                                                     Excluir
